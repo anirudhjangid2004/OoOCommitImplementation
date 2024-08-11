@@ -29,9 +29,17 @@ extern uint8_t warmup_complete[NUM_CPUS];
 extern uint8_t MAX_INSTR_DESTINATIONS;
 
 
-//Matrix for age
+//Instruction Queue AGE Matrix
+vector<vector<int>> age_matrix_iq(32, vector<int>(32,0));
 
-vector<vector<int>> age_matrix(32,vector<int>(32,0));
+// Reorder Buffer AGE Matrix
+vector<vector<int>> age_matrix_rob(32, vector<int>(32, 0));
+
+// Memory Disambiguation matrix 
+vector<vector<int>> matrix_mem_disamb(32, vector<int>(32, 0));
+
+// Wakeup Matrix
+vector<vector<int>> matrix_wakeup(32, vector<int>(32, 0));
 
 void O3_CPU::operate()
 {
@@ -494,9 +502,13 @@ void O3_CPU::dispatch_instruction()
   // dispatch DISPATCH_WIDTH instructions into the ROB
   while (available_dispatch_bandwidth > 0 && DISPATCH_BUFFER.has_ready() && !ROB.full()) {
     // Add to ROB
-    ROB.push_back(DISPATCH_BUFFER.front());
+    ROB.push_back(DISPATCH_BUFFER.front()); //Not required
     DISPATCH_BUFFER.pop_front();
     available_dispatch_bandwidth--;
+
+    // ROB.pushEntry --> will register the entry 
+    // ROB.push_back() --> not required
+
   }
 
   // check for deadlock
@@ -549,6 +561,8 @@ void O3_CPU::do_scheduling(champsim::circular_buffer<ooo_model_instr>::iterator 
       champsim::circular_buffer<ooo_model_instr>::reverse_iterator prior{rob_it};
       prior = std::find_if(prior, ROB.rend(), instr_reg_will_produce(src_reg));
       if (prior != ROB.rend() && (prior->registers_instrs_depend_on_me.empty() || prior->registers_instrs_depend_on_me.back() != rob_it)) {
+        // Check for instruction to get scheduled
+        // Condn change to get values from wakeup matrix
         prior->registers_instrs_depend_on_me.push_back(rob_it);
         rob_it->num_reg_dependent++;
       }

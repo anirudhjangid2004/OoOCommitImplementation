@@ -65,9 +65,9 @@ public:
 
   // reorder buffer, load/store queue, register file
   champsim::circular_buffer<ooo_model_instr> IFETCH_BUFFER;
-  champsim::delay_queue<ooo_model_instr> DISPATCH_BUFFER;
+  champsim::delay_queue<ooo_model_instr> DISPATCH_BUFFER; // 
   champsim::delay_queue<ooo_model_instr> DECODE_BUFFER;
-  champsim::circular_buffer<ooo_model_instr> ROB;
+  champsim::circular_buffer<ooo_model_instr> ROB;  // ROB implemented as circular queue
   std::vector<LSQ_ENTRY> LQ;
   std::vector<LSQ_ENTRY> SQ;
 
